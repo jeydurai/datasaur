@@ -1,0 +1,5 @@
+= datasaur
+
+Generate this with
+    datasaur rdoc
+After you have described your command line interface

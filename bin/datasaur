@@ -1,0 +1,159 @@
+#!/usr/bin/env ruby
+require 'gli'
+begin # XXX: Remove this begin/rescue before distributing your app
+require 'datasaur'
+rescue LoadError
+  STDERR.puts "In development, you need to use `bundle exec bin/datasaur` to run your app"
+  STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
+  STDERR.puts "Feel free to remove this message from bin/datasaur now"
+  exit 64
+end
+
+include GLI::App
+
+program_desc 'Report Automation Tool for Cisco-Commercial Sales, India & SAARC'
+
+version Datasaur::VERSION
+
+subcommand_option_handling :normal
+arguments :strict
+
+desc 'Host - MongoDB database'
+default_value 'localhost'
+arg_name 'Host'
+flag [:h,:host]
+
+desc 'Port - MongoDB database'
+default_value '27017'
+arg_name 'Port'
+flag [:p,:port]
+
+desc 'Database - MongoDB database name'
+default_value 'ccsdm'
+arg_name 'DB'
+flag [:d,:dbname]
+
+desc 'Home Directory'
+default_value "#{Dir.home}/Documents/Jeyaraj/My_Contents/Work/Commercial/Reports"
+arg_name 'HomeDir'
+flag [:f,:filepath]
+
+desc 'Generates Owner specific reports'
+arg_name 'Describe arguments to generate here'
+command :generate do |c|
+  c.desc 'Should generate Excel file dump'
+  c.default_value true
+  c.switch [:d, :dump]
+
+  c.desc 'Report Owner'
+  c.default_value 'sudhir'
+  c.flag [:o, :owner]
+
+  c.desc 'Name of the Report'
+  c.default_value 'booking'
+  c.flag [:n, :name]
+
+  c.desc 'Historical periods <no/. years>'
+  c.default_value 2
+  c.flag [:history]
+  c.action do |global_options,options,args|
+    report_opts = { 
+      dump_reqrd: options[:dump], 
+      path:       global_options[:filepath], 
+      hist:       options[:history].to_i, 
+      owner:      options[:owner].downcase.to_sym, 
+      name:       options[:name].downcase.to_sym
+    }
+    mongo_opts  = { host: global_options[:host], port: global_options[:port], dbname: global_options[:dbname] }
+    exit_code   = Generator.new(report_opts, mongo_opts, args).generate
+    raise "[Error]: Datasaur exited with Error!" unless exit_code
+    puts "generate command ran"
+  end
+end
+
+desc 'Describe howis here'
+arg_name 'Describe arguments to howis here'
+command :howis do |c|
+  c.action do |global_options,options,args|
+    puts "howis command ran"
+  end
+end
+
+desc 'Describe howare here'
+arg_name 'Describe arguments to howare here'
+command :howare do |c|
+  c.action do |global_options,options,args|
+    puts "howare command ran"
+  end
+end
+
+desc 'Describe showpipe here'
+arg_name 'Describe arguments to showpipe here'
+command :showpipe do |c|
+  c.action do |global_options,options,args|
+    puts "showpipe command ran"
+  end
+end
+
+desc 'Describe showbooking here'
+arg_name 'Describe arguments to showbooking here'
+command :showbooking do |c|
+  c.action do |global_options,options,args|
+    puts "showbooking command ran"
+  end
+end
+
+desc 'Describe showdiscount here'
+arg_name 'Describe arguments to showdiscount here'
+command :showdiscount do |c|
+  c.action do |global_options,options,args|
+    puts "showdiscount command ran"
+  end
+end
+
+desc 'Describe showmargin here'
+arg_name 'Describe arguments to showmargin here'
+command :showmargin do |c|
+  c.action do |global_options,options,args|
+    puts "showmargin command ran"
+  end
+end
+
+desc 'Describe showmetrics here'
+arg_name 'Describe arguments to showmetrics here'
+command :showmetrics do |c|
+  c.action do |global_options,options,args|
+    puts "showmetrics command ran"
+  end
+end
+
+desc 'Describe whatif here'
+arg_name 'Describe arguments to whatif here'
+command :whatif do |c|
+  c.action do |global_options,options,args|
+    puts "whatif command ran"
+  end
+end
+
+pre do |global,command,options,args|
+  # Pre logic here
+  # Return true to proceed; false to abort and not call the
+  # chosen command
+  # Use skips_pre before a command to skip this block
+  # on that command only
+  true
+end
+
+post do |global,command,options,args|
+  # Post logic here
+  # Use skips_post before a command to skip this
+  # block on that command only
+end
+
+on_error do |exception|
+  # Error logic here
+  # return false to skip default error handling
+  true
+end
+
+exit run(ARGV)
