@@ -1,22 +1,21 @@
-# Models for 'booking_dump' collection
+# Models for 'sfdc_dump' collection
 
-class BookingDump < MongoBase
-  include Booking::Readable
+class SFDCDump < MongoBase
+  include SFDC::Readable
   include Writeable
 
-  attr_reader :model
-
   def initialize(model, writer, mongo_opts)
-    super(mongo_opts[:host], mongo_opts[:port], mongo_opts[:dbname],'booking_dump')
+    super(mongo_opts[:host], mongo_opts[:port], mongo_opts[:dbname],'sfdc_dump')
     @model         = model
     @writer        = writer
     @data          = []
     @header_switch = true
   end
+
 end
 
 
-class COMBookingDump < BookingQueryEngine
+class COMSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 
@@ -29,7 +28,7 @@ class COMBookingDump < BookingQueryEngine
 end
 
 
-class NEGEOBookingDump < BookingQueryEngine
+class NEGEOSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 
@@ -42,7 +41,7 @@ class NEGEOBookingDump < BookingQueryEngine
 end
 
 
-class SLTLBookingDump < BookingQueryEngine
+class SLTLSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 
@@ -55,7 +54,7 @@ class SLTLBookingDump < BookingQueryEngine
 end
 
 
-class SWGEOBookingDump < BookingQueryEngine
+class SWGEOSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 
@@ -68,7 +67,7 @@ class SWGEOBookingDump < BookingQueryEngine
 end
 
 
-class BDBookingDump < BookingQueryEngine
+class BDSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 
@@ -78,11 +77,10 @@ class BDBookingDump < BookingQueryEngine
     @node_field = 'sales_level_4'
     @nodes      = [ 'INDIA_COMM_BD' ]
   end
-  public :configure
 end
 
 
-class SLTLSouthBookingDump < BookingQueryEngine
+class SLTLSouthSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 
@@ -96,7 +94,7 @@ class SLTLSouthBookingDump < BookingQueryEngine
 end
 
 
-class SLTLWestBookingDump < BookingQueryEngine
+class SLTLWestSFDCDump < SFDCQueryEngine
 
   attr_reader :queries, :headers, :name
 

@@ -1,54 +1,74 @@
 # generate command handler
 
 class BookingGenerator
+  include Parser::Generator::Parsable
+  include Configurator::Generator::Configurable
+
   def initialize(report_opts, mongo_opts, args)
+    @time          = Time.now.strftime "%Y-%m-%d_%H-%M-%S"
     @owner         = report_opts[:owner]
     @hist          = report_opts[:hist]
+    @dump_reqd     = report_opts[:dump_reqd]
+    @prodserv      = report_opts[:prodserv]
     @fields_config = parse_args args
-    @model         = BookingDump.new(choose_model, report_opts[:dump_reqd], report_opts[:path], mongo_opts)
+    @spec_model    = choose_model :booking
+    @spec_model.configure
+    @out_file      = File.join(report_opts[:path], "#{@spec_model.name}_BookingDump#{@time}.xlsx")
+    @model         = BookingDump.new(
+      @spec_model, 
+      Writer.new(ExcelWriter.new(@out_file, @spec_model.name, @spec_model.headers)), 
+      mongo_opts
+    )
   end
 
-  def choose_model
-    case @owner
-    when :sudhir
-      COMBookingDump.new(@hist, @fields_config)
-    when :tm
-      SLTLBookingDump.new(@hist, @fields_config)
-    when :mukund
-      SWGEOBookingDump.new(@hist, @fields_config)
-    when :vipul
-      NEGEOBookingDump.new(@hist, @fields_config)
-    when :fakhrudhin
-      BDBookingDump.new(@hist, @fields_config)
-    else
-      raise "[Runtime Error]: Owner unfound!"
-    end
-  end
-
-  def parse_args args
-    fields_config = { add: [], discard: [] }
-    args.each do |arg|
-      config = arg.split(/[:|]/)
-      if (config.first.strip.to_sym == :a) or (config.first.strip.to_sym == :add) or (config.first.strip.to_sym == :include) or \
-          (config.first.strip.to_sym == :insert) or (config.first.strip.to_sym == :unshift)
-        fields_config[:add] << config[1].strip
-      elsif (config.first.strip.to_sym == :r) or (config.first.strip.to_sym == :remove) or (config.first.strip.to_sym == :exclude) or \
-        (config.first.strip.to_sym == :discard) or (config.first.strip.to_sym == :shift)
-        fields_config[:discard] << config[1].strip
-      else
-        raise "[Runtime Error]: arguments #{args.inspect} are hard to parse!"
-      end
-    end
-    fields_config
-  end
-  
   def generate
+    @model.read_data
+    @model.write_data
+    1
+  end
+
+  def read_data
     @model.read_data
   end
 
-  public :generate
-  private :choose_model, :parse_args
+  public :generate, :read_data
 end
+
+
+class SFDCGenerator
+  include Parser::Generator::Parsable
+  include Configurator::Generator::Configurable
+
+  def initialize(report_opts, mongo_opts, args)
+    @time          = Time.now.strftime "%Y-%m-%d_%H-%M-%S"
+    @owner         = report_opts[:owner]
+    @hist          = report_opts[:hist]
+    @dump_reqd     = report_opts[:dump_reqd]
+    @prodserv      = report_opts[:prodserv]
+    @fields_config = parse_args args
+    @spec_model    = choose_model :sfdc
+    @spec_model.configure
+    @out_file      = File.join(report_opts[:path], "#{@spec_model.name}_SFDCDump#{@time}.xlsx")
+    @model         = SFDCDump.new(
+      @spec_model, 
+      Writer.new(ExcelWriter.new(@out_file, @spec_model.name, @spec_model.headers)), 
+      mongo_opts
+    )
+  end
+
+  def generate
+    @model.read_data
+    @model.write_data booking: false
+    1
+  end
+
+  def read_data
+    @model.read_data
+  end
+
+  public :generate, :read_data
+end
+
 
 class Generator
 
@@ -67,6 +87,7 @@ class Generator
     when :booking
       BookingGenerator.new(@report_opts, @mongo_opts, @args)
     when :sfdc
+      SFDCGenerator.new(@report_opts, @mongo_opts, @args)
     else
       raise "[Runtime Error]: Report name unfound!"
     end

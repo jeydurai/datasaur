@@ -1,23 +1,24 @@
 # mongodb utilities
+#
 
 module Queryable
-  def match_objects periods, nodes, others: {}
+  def match_objects periods
     qry = []
     qry << prepare_match_objects(periods)
-    qry << prepare_match_objects(nodes)
-    qry << prepare_match_objects(others)
+    qry << prepare_match_objects(@node_config)
+    qry << prepare_match_objects(@prodserv_config)
     { '$match' => { '$and' => qry.flatten }}
   end
 
-  def group_objects uniq_fields, val_fields
-    qry = group_uniquefields_object(uniq_fields).merge(group_valuefields_object(val_fields))
+  def group_objects
+    qry = group_uniquefields_object(@uniq_fields).merge(group_valuefields_object(@val_fields))
     { '$group' => qry }
   end
 
-  def project_objects uniq_fields, val_fields
+  def project_objects
     qry = { '_id' => 0 }
-    qry.merge!(project_uniquefields_object(uniq_fields))
-    qry.merge!(project_valuefields_object(val_fields))
+    qry.merge!(project_uniquefields_object(@uniq_fields))
+    qry.merge!(project_valuefields_object(@val_fields))
     { '$project' => qry }
   end
 
@@ -109,24 +110,33 @@ end
 
 class QueryEngine
   include Queryable
+  include Configurator::BusinessNodes::Configurable
+  include Configurator::Fields::Configurable
 
-  attr_accessor :node_field, :nodes, :uniq_fields, :val_fields, :node_config, :headers
+  attr_accessor :node_field, :nodes, :uniq_fields, :val_fields, :node_config, :headers, :queries
 
   def initialize hist, fields_config
-    @hist          = hist
-    @cur_year      = 2018
-    @node_field    = nil
-    @nodes         = []
-    @fields_config = fields_config
+    @hist               = hist
+    @cur_year           = 2018
+    @node_field         = nil
+    @nodes              = []
+    @fields_config      = fields_config
+  end
+
+  def configure
+    set_configurations
+    redefine_fields
+    @queries = make_query
   end
 
   def set_configurations
-    @years         = make_years
-    @finmonths     = make_finmonths
-    @node_config   = make_node_config
-    @uniq_fields   = select_uniq_fields
-    @val_fields    = select_val_fields
-    @headers       = make_one_uniq_fields
+    @years           = make_years
+    @finmonths       = make_finmonths
+    @node_config     = make_node_config
+    @prodserv_config = make_prodserv_config
+    @uniq_fields     = select_uniq_fields
+    @val_fields      = select_val_fields
+    @headers         = make_one_uniq_fields
   end
 
   def redefine_fields
@@ -135,60 +145,65 @@ class QueryEngine
     @headers = make_one_uniq_fields
   end
 
-  def remove_fields
-    fields = @fields_config[:discard]
-    fields.each { |field| @uniq_fields.delete(field) if @uniq_fields.include? field }
-    fields.each { |field| @val_fields.delete(field) if @val_fields.has_key? field }
-  end
-
-  def add_fields
-    fields = @fields_config[:add]
-    fields.each { |field| @uniq_fields << field unless @uniq_fields.include? field }
-  end
-
-  def make_one_uniq_fields
-    fields = @uniq_fields.select { |f| f }
-    @val_fields.each_key { |f| fields << f }
-    fields
-  end
-
   def make_query
     qry = []
     @finmonths.each do |m|
       period_config = make_period_config m
-      match         = match_objects period_config, @node_config
-      grp           = group_objects @uniq_fields, @val_fields
-      proj          = project_objects @uniq_fields, @val_fields
+      match         = match_objects period_config
+      grp           = group_objects
+      proj          = project_objects
       qry << [ match, grp, proj ]
     end
     qry
   end
 
-  def make_node_config
-    { @node_field => [ { eq: @nodes } ] }
+  private :select_uniq_fields, :select_val_fields, :make_years, :make_finmonths, :make_period_config, :make_node_config, 
+    :make_one_uniq_fields 
+  public :remove_fields, :add_fields, :configure, :set_configurations, :redefine_fields
+end
+
+
+class BookingQueryEngine < QueryEngine
+
+  def initialize hist, prodserv, fields_config
+    super(hist, fields_config)
+    @prodserv = prodserv
   end
 
-  def make_period_config finmonth
-    { 'fiscal_period_id' => [ { eq: [ finmonth ] } ] }
+  def configure
+    set_configurations
+    redefine_fields
+    @queries = make_query
   end
 
-  def make_finmonths
-    finmonths = []
-    months = 1.upto(12).select { |m| m }
-    @years.each do |y|
-      months.each do |m|
-        finmonths << "#{y.to_s}#{m.to_s.rjust(2, '0')}".to_i
-      end
-    end
-    finmonths
+  def set_configurations
+    super
+    @prodserv_config = make_prodserv_config
   end
 
-  def make_years
-    years = []
-    @cur_year.downto(@cur_year-(@hist-1)) do |y|
-      years << y
-    end
-    years
+  public :configure, :set_configurations
+end
+
+class SFDCQueryEngine < QueryEngine
+
+  def initialize hist, prodserv, fields_config
+    super(hist, fields_config)
+    @prodserv = prodserv
+  end
+
+  def configure
+    set_configurations
+    redefine_fields
+    @queries = make_query
+  end
+
+  def set_configurations
+    super
+    @prodserv_config = make_prodserv_config
+  end
+
+  def make_query
+    match_objects({})
   end
 
   def select_uniq_fields
@@ -204,8 +219,7 @@ class QueryEngine
     { 'booking_net' => :sum, 'base_list' => :sum, 'standard_cost' => :sum }
   end
 
-  private :select_uniq_fields, :select_val_fields, :make_years, :make_finmonths, :make_period_config, :make_node_config, 
-    :make_one_uniq_fields, :redefine_fields
-  public :make_query, :set_configurations, :remove_fields, :add_fields
+  public :configure, :set_configurations
 end
+
 

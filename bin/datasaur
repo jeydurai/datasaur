@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby
 require 'gli'
-begin # XXX: Remove this begin/rescue before distributing your app
 require 'datasaur'
-rescue LoadError
-  STDERR.puts "In development, you need to use `bundle exec bin/datasaur` to run your app"
-  STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
-  STDERR.puts "Feel free to remove this message from bin/datasaur now"
-  exit 64
-end
+#begin # XXX: Remove this begin/rescue before distributing your app
+  #require 'datasaur'
+#rescue LoadError
+  ##STDERR.puts "In development, you need to use `bundle exec bin/datasaur` to run your app"
+  ##STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
+  ##STDERR.puts "Feel free to remove this message from bin/datasaur now"
+  ##exit 64
+#end
 
 include GLI::App
 
@@ -54,15 +55,24 @@ command :generate do |c|
   c.flag [:n, :name]
 
   c.desc 'Historical periods <no/. years>'
-  c.default_value 2
+  c.default_value 1
   c.flag [:history]
+
+  c.desc 'Business segment to be "products"'
+  c.default_value 1
+  c.switch [:products]
+
+  c.desc 'Business segment to be "services"'
+  c.default_value 1
+  c.switch [:services]
   c.action do |global_options,options,args|
     report_opts = { 
       dump_reqrd: options[:dump], 
       path:       global_options[:filepath], 
       hist:       options[:history].to_i, 
       owner:      options[:owner].downcase.to_sym, 
-      name:       options[:name].downcase.to_sym
+      name:       options[:name].downcase.to_sym,
+      prodserv:   { products: options[:products], services: options[:services] }
     }
     mongo_opts  = { host: global_options[:host], port: global_options[:port], dbname: global_options[:dbname] }
     exit_code   = Generator.new(report_opts, mongo_opts, args).generate
