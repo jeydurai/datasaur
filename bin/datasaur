@@ -1,14 +1,6 @@
 #!/usr/bin/env ruby
 require 'gli'
 require 'datasaur'
-#begin # XXX: Remove this begin/rescue before distributing your app
-  #require 'datasaur'
-#rescue LoadError
-  ##STDERR.puts "In development, you need to use `bundle exec bin/datasaur` to run your app"
-  ##STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
-  ##STDERR.puts "Feel free to remove this message from bin/datasaur now"
-  ##exit 64
-#end
 
 include GLI::App
 
@@ -59,11 +51,11 @@ command :generate do |c|
   c.flag [:history]
 
   c.desc 'Business segment to be "products"'
-  c.default_value 1
+  c.default_value true
   c.switch [:products]
 
   c.desc 'Business segment to be "services"'
-  c.default_value 1
+  c.default_value true
   c.switch [:services]
   c.action do |global_options,options,args|
     report_opts = { 
@@ -81,12 +73,22 @@ command :generate do |c|
   end
 end
 
-desc 'Describe howis here'
+desc 'Shows the health of the business'
 arg_name 'Describe arguments to howis here'
 command :howis do |c|
-  c.action do |global_options,options,args|
-    puts "howis command ran"
+  c.desc 'Shows the health of the SW-GEO business'
+  c.command :mukundan do |mukundan|
+    mukundan.desc 'For how many years'
+    mukundan.default_value 1
+    mukundan.flag [:for_years]
+    mukundan.action do |global_options,options,args|
+      mongo_opts  = { host: global_options[:host], port: global_options[:port], dbname: global_options[:dbname] }
+      for_years = options[:for_years]
+      exit_code = HowIs.new(:sw_geo, mongo_opts, for_years, args).tellme
+      raise "[Error]: Datasaur exited with Error!" unless exit_code
+    end
   end
+  puts "howis command ran"
 end
 
 desc 'Describe howare here'

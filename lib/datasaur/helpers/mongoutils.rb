@@ -176,13 +176,9 @@ class BookingQueryEngine < QueryEngine
     @queries = make_query
   end
 
-  def set_configurations
-    super
-    @prodserv_config = make_prodserv_config
-  end
-
   public :configure, :set_configurations
 end
+
 
 class SFDCQueryEngine < QueryEngine
 
@@ -195,11 +191,6 @@ class SFDCQueryEngine < QueryEngine
     set_configurations
     redefine_fields
     @queries = make_query
-  end
-
-  def set_configurations
-    super
-    @prodserv_config = make_prodserv_config
   end
 
   def make_query

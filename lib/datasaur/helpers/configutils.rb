@@ -70,7 +70,8 @@ module Configurator
           'fiscal_year_id', 'fiscal_quarter_id', 'fiscal_month_id', 'fiscal_week_id',
           'sales_level_4', 'sales_level_5', 'sales_level_6', 'sales_agent', 'rm_name', 'od_name',
           'segment', 'country', 'region', 'state', 'prod_serv', 'recurring_offer_flag', 'tier_code', 
-          'grp_ver', 'grp_ver2', 'product_classification', 'arch1', 'arch2', 'tech_name1', 'tech_name2'
+          'grp_ver', 'grp_ver2', 'product_classification', 'arch1', 'arch2', 'tech_name1', 'tech_name2', 
+          'tech_name3', 'grp_name'
         ]
       end
 
