@@ -23,6 +23,7 @@ module Queryable
   end
 
   def project_uniquefields_object uniq_fields
+    return {} if uniq_fields.nil? or uniq_fields.empty? 
     qry = {}
     uniq_fields.each do |field|
       qry.merge!({ field => "$_id.#{field}" })
@@ -39,6 +40,7 @@ module Queryable
   end
 
   def group_uniquefields_object uniq_fields
+    return { '_id' => nil } if uniq_fields.nil? or uniq_fields.empty? 
     qry = {}
     uniq_fields.each do |field|
       qry.merge!({ field => "$#{field}" })

@@ -76,19 +76,16 @@ end
 desc 'Shows the health of the business'
 arg_name 'Describe arguments to howis here'
 command :howis do |c|
-  c.desc 'Shows the health of the SW-GEO business'
-  c.command :mukundan do |mukundan|
-    mukundan.desc 'For how many years'
-    mukundan.default_value 1
-    mukundan.flag [:for_years]
-    mukundan.action do |global_options,options,args|
+  c.desc 'Shows the health of the Commcercial business'
+  c.arg_name 'List of options'
+  c.command :sudhir do |comm|
+
+    comm.action do |global_options,options,args|
       mongo_opts  = { host: global_options[:host], port: global_options[:port], dbname: global_options[:dbname] }
-      for_years = options[:for_years]
-      exit_code = HowIs.new(:sw_geo, mongo_opts, for_years, args).tellme
-      raise "[Error]: Datasaur exited with Error!" unless exit_code
+      exit_code = Commercial.new(mongo_opts, args).tellme
+      puts "howis command ran"
     end
   end
-  puts "howis command ran"
 end
 
 desc 'Describe howare here'
