@@ -19,6 +19,7 @@ class How
     @metric, @period = parse_howis_args
     return 1 if args_error?
     execute
+    puts "All done!"
   end
 
   private
@@ -38,7 +39,7 @@ end
 
 class Commercial < How
 
-  def initialize mong_config, args
+  def initialize(mong_config, args)
     super(:sudhir, mong_config, args)
     @job = nil
   end

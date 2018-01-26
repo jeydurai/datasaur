@@ -65,38 +65,8 @@ class DataStruct < MongoBase
   end
 
   # Returns the plan for the year from the instance variable data
-  def year_plan
-    @data['plan_year']
-  end
-
-  # Returns the plan for Q1 from the instance variable data
-  def q1_plan
-    @data['plan_q1']
-  end
-
-  # Returns the plan for Q2 from the instance variable data
-  def q2_plan
-    @data['plan_q2']
-  end
-
-  # Returns the plan for Q3 from the instance variable data
-  def q3_plan
-    @data['plan_q3']
-  end
-
-  # Returns the plan for Q4 from the instance variable data
-  def q4_plan
-    @data['plan_q4']
-  end
-
-  # Returns the plan for H1 from the instance variable data
-  def h1_plan
-    q1_plan + q2_plan
-  end
-
-  # Returns the plan for H2 from the instance variable data
-  def h2_plan
-    q3_plan + q4_plan
+  def plan
+    @data['plan']
   end
 
   # Returns the total number of data structure in sub structures
@@ -107,11 +77,21 @@ class DataStruct < MongoBase
   # Runs the MongoDB aggregate method through agg method in MongoBase module
   def get_aggregated
     agg(@query) do |doc|
-      @data = {
-        'booking_net'   => doc['booking_net'],
-        'base_list'     => doc['base_list'],
-        'standard_cost' => doc['standard_cost'],
-      }
+      case @model
+      when :booking
+        @data = { 'booking_net' => doc['booking_net'], 'base_list' => doc['base_list'], 'standard_cost' => doc['standard_cost'], }
+      when :pipe
+        @data = { 'opportunity_line_value' => doc['opportunity_line_value'], }
+      when :plan
+        @data = { 
+          'plan_year' => doc['plan_year'], 
+          'plan_q1'   => doc['plan_q1'],
+          'plan_q2'   => doc['plan_q2'],
+          'plan_q3'   => doc['plan_q3'],
+          'plan_q4'   => doc['plan_q4'],
+        }
+      else
+      end
     end
   end
 
@@ -184,59 +164,11 @@ class CompositeDataStruct < DataStruct
   end
 
   # Returns the plan for the year from the instance variable data
-  def year_plan
-    return @year_plan if defined? @year_plan
-    year_plan = 0.0
-    @sub_structs.each { |struct| year_plan += struct.year_plan }
-    @year_plan = year_plan
-  end
-
-  # Returns the plan for Q1 from the instance variable data
-  def q1_plan
-    return @q1_plan if defined? @q1_plan
-    q1_plan = 0.0
-    @sub_structs.each { |struct| q1_plan += struct.q1_plan }
-    @q1_plan = q1_plan
-  end
-
-  # Returns the plan for Q2 from the instance variable data
-  def q2_plan
-    return @q2_plan if defined? @q2_plan
-    q2_plan = 0.0
-    @sub_structs.each { |struct| q2_plan += struct.q2_plan }
-    @q2_plan = q2_plan
-  end
-
-  # Returns the plan for Q3 from the instance variable data
-  def q3_plan
-    return @q3_plan if defined? @q3_plan
-    q3_plan = 0.0
-    @sub_structs.each { |struct| q3_plan += struct.q3_plan }
-    @q3_plan = q3_plan
-  end
-
-  # Returns the plan for Q4 from the instance variable data
-  def q4_plan
-    return @q4_plan if defined? @q4_plan
-    q4_plan = 0.0
-    @sub_structs.each { |struct| q4_plan += struct.q4_plan }
-    @q4_plan = q4_plan
-  end
-
-  # Returns the plan for H1 from the instance variable data
-  def h1_plan
-    return @h1_plan if defined? @h1_plan
-    h1_plan = 0.0
-    @sub_structs.each { |struct| h1_plan += struct.h1_plan }
-    @h1_plan = h1_plan
-  end
-
-  # Returns the plan for H2 from the instance variable data
-  def h2_plan
-    return @h2_plan if defined? @h2_plan
-    h2_plan = 0.0
-    @sub_structs.each { |struct| h2_plan += struct.h2_plan }
-    @h2_plan = h2_plan
+  def plan
+    return @plan if defined? @plan
+    plan = 0.0
+    @sub_structs.each { |struct| plan += struct.plan }
+    @plan = plan
   end
 
   # Overrides the super class method and calculates total number of structs by adding individual counts
