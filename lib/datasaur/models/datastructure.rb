@@ -27,7 +27,7 @@ class DataStruct < MongoBase
     when :pipe
       @val_fields  = { 'opportunity_line_value' => :sum }
     when :plan
-      @val_fields  = { 'plan_year' => :sum, 'plan_q1' => :sum, 'plan_q2' => :sum, 'plan_q3' => :sum, 'plan_q4' => :sum }
+      @val_fields  = { 'plan' => :sum }
     end
   end
 
@@ -83,13 +83,7 @@ class DataStruct < MongoBase
       when :pipe
         @data = { 'opportunity_line_value' => doc['opportunity_line_value'], }
       when :plan
-        @data = { 
-          'plan_year' => doc['plan_year'], 
-          'plan_q1'   => doc['plan_q1'],
-          'plan_q2'   => doc['plan_q2'],
-          'plan_q3'   => doc['plan_q3'],
-          'plan_q4'   => doc['plan_q4'],
-        }
+        @data = { 'plan' => doc['plan'] }
       else
       end
     end
@@ -221,6 +215,18 @@ class EntNetWorkingDataStruct < CompositeDataStruct
 end
 
 
+## Data Structure class for calculating Enterprise Networking  Data structure
+# ============================================================================
+class ENTNWDataStruct< DataStruct
+  def initialize(qry, mong_opts, model)
+    super('ENT_NW', mong_opts, model)
+    @match_obj = qry.merge({ 'arch2' => 'ENT_NW' })
+    @query     = make_query
+    get_aggregated
+  end
+end
+
+
 ## Data Structure class for calculating EN technology 'Meraki' Data structure
 # ============================================================================
 class MerakiDataStruct< DataStruct
@@ -294,6 +300,18 @@ class SecurityDataStruct < CompositeDataStruct
 end
 
 
+## Data Structure class for calculating Security Data structure
+# =============================================================
+class SECDataStruct< DataStruct
+  def initialize(qry, mong_opts, model)
+    super('Security', mong_opts, model)
+    @match_obj = qry.merge({ 'arch2' => 'Security' })
+    @query     = make_query
+    get_aggregated
+  end
+end
+
+
 ## Data Structure class for calculating Security technology 'Policy Access' Data structure
 # ========================================================================================
 class PolicyAccessSecurityDataStruct< DataStruct
@@ -344,7 +362,7 @@ end
 
 ## Composite Data Structure class for calculating architecture 'Collaboration' Data structure
 # ===========================================================================================
-class CollabDataStruct < CompositeDataStruct
+class CollaborationDataStruct < CompositeDataStruct
   def initialize(query, mong_opts, model)
     super('Collaboration', mong_opts, model)
     add_sub_struct ConferencingDataStruct.new(query, mong_opts, model)
@@ -353,6 +371,18 @@ class CollabDataStruct < CompositeDataStruct
     add_sub_struct TPInfrastructureDataStruct.new(query, mong_opts, model)
     add_sub_struct UCEndpointsDataStruct.new(query, mong_opts, model)
     add_sub_struct UCInfrastructureDataStruct.new(query, mong_opts, model)
+  end
+end
+
+
+## Data Structure class for calculating Collab Data structure
+# ===========================================================
+class CollabDataStruct< DataStruct
+  def initialize(qry, mong_opts, model)
+    super('Collab', mong_opts, model)
+    @match_obj = qry.merge({ 'arch2' => 'Collab' })
+    @query     = make_query
+    get_aggregated
   end
 end
 
@@ -431,12 +461,24 @@ end
 
 ## Composite Data Structure class for calculating architecture 'Data Centre & Virtualization' Data structure
 # ==========================================================================================================
-class DCVDataStruct < CompositeDataStruct
+class DataCentreDataStruct < CompositeDataStruct
   def initialize(query, mong_opts, model)
     super('Data Centre & Virtualization', mong_opts, model)
     add_sub_struct DCSwitchingDataStruct.new(query, mong_opts, model)
     add_sub_struct HyperConvergedDataStruct.new(query, mong_opts, model)
     add_sub_struct UCSDataStruct.new(query, mong_opts, model)
+  end
+end
+
+
+## Data Structure class for calculating DCV Data structure
+# ========================================================
+class DCVDataStruct< DataStruct
+  def initialize(qry, mong_opts, model)
+    super('DCV', mong_opts, model)
+    @match_obj = qry.merge({ 'arch2' => 'DCV' })
+    @query     = make_query
+    get_aggregated
   end
 end
 
@@ -479,10 +521,10 @@ end
 
 ## Data Structure class for calculating architecture 'Others-Product' Data structure
 # ==================================================================================
-class OthersProducrtDataStruct< DataStruct
+class OthersProductDataStruct< DataStruct
   def initialize(qry, mong_opts, model)
     super('Others-Product', mong_opts, model)
-    @match_obj = qry.merge({ 'tech_name3' => 'Others-Product' })
+    @match_obj = qry.merge({ 'arch2' => 'Others-Product' })
     @query     = make_query
     get_aggregated
   end
